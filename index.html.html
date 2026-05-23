@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DASHBOARD ECOMTECH v2</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0f1117;--bg2:#1a1d27;--bg3:#252836;--bg4:#2e3245;--accent:#00d4aa;--accent2:#0099ff;--warn:#f59e0b;--danger:#ef4444;--success:#10b981;--text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;--border:#2e3245;--r:8px;--r2:12px}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:14px;min-height:100vh}
+.app{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:220px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
+.sidebar-header{padding:16px;border-bottom:1px solid var(--border);flex-shrink:0}
+.logo{font-size:13px;font-weight:700;color:var(--accent);letter-spacing:1px}
+.logo-sub{font-size:10px;color:var(--text3);margin-top:2px}
+.nav{padding:8px 0}
+.nav-section{padding:8px 16px 4px;font-size:10px;color:var(--text3);font-weight:600;letter-spacing:1px;text-transform:uppercase}
+.nav-item{display:flex;align-items:center;gap:8px;padding:8px 16px;cursor:pointer;color:var(--text2);font-size:13px;border-left:2px solid transparent;transition:.15s}
+.nav-item:hover{background:var(--bg3);color:var(--text)}
+.nav-item.active{background:var(--bg3);color:var(--accent);border-left-color:var(--accent)}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 20px;height:52px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.topbar-title{font-size:15px;font-weight:600}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-admin{background:rgba(0,212,170,.15);color:var(--accent)}
+.badge-promotor{background:rgba(0,153,255,.15);color:var(--accent2)}
+.btn-logout{background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:6px 12px;border-radius:var(--r);cursor:pointer;font-size:12px}
+.btn-logout:hover{color:var(--danger);border-color:var(--danger)}
+.content{flex:1;overflow-y:auto;padding:20px}
+.page{display:none}.page.active{display:block}
+.login-wrap{display:flex;align-items:center;justify-content:center;height:100vh;background:var(--bg)}
+.login-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:40px;width:380px}
+.login-logo{text-align:center;margin-bottom:32px}
+.login-logo .big{font-size:24px;font-weight:700;color:var(--accent);letter-spacing:2px}
+.login-logo .sub{font-size:11px;color:var(--text3);margin-top:4px}
+.form-group{margin-bottom:14px}
+.form-label{display:block;font-size:12px;color:var(--text2);margin-bottom:5px;font-weight:500}
+.form-label .req{color:var(--danger)}
+.form-control{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:9px 12px;border-radius:var(--r);font-size:13px;outline:none;transition:.15s}
+.form-control:focus{border-color:var(--accent)}
+.form-control[readonly]{background:var(--bg4);color:var(--accent)}
+.form-control.error{border-color:var(--danger)}
+.form-select{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:9px 12px;border-radius:var(--r);font-size:13px;outline:none}
+.btn{padding:9px 18px;border-radius:var(--r);cursor:pointer;font-size:13px;font-weight:600;border:none;transition:.15s;display:inline-flex;align-items:center;gap:6px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-primary{background:var(--accent);color:#000}.btn-primary:hover{background:#00bfa0}
+.btn-secondary{background:var(--bg4);color:var(--text);border:1px solid var(--border)}.btn-secondary:hover{background:var(--bg3)}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-warning{background:var(--warn);color:#000}
+.btn-success{background:var(--success);color:#000}
+.btn-sm{padding:5px 12px;font-size:12px}
+.btn-full{width:100%;justify-content:center}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px}
+.kpi-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:16px}
+.kpi-label{font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.kpi-value{font-size:22px;font-weight:700;line-height:1}
+.kpi-sub{font-size:11px;color:var(--text2);margin-top:4px}
+.kpi-accent{color:var(--accent)}.kpi-warn{color:var(--warn)}.kpi-danger{color:var(--danger)}.kpi-info{color:var(--accent2)}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);margin-bottom:16px}
+.card-header{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.card-title{font-size:14px;font-weight:600}
+.card-body{padding:16px}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{padding:9px 12px;text-align:left;color:var(--text3);font-weight:600;font-size:11px;text-transform:uppercase;background:var(--bg3);border-bottom:1px solid var(--border)}
+td{padding:9px 12px;border-bottom:1px solid var(--border);color:var(--text2)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg3);color:var(--text)}
+.status{padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
+.s-disponible{background:rgba(16,185,129,.15);color:var(--success)}
+.s-vendido{background:rgba(239,68,68,.15);color:var(--danger)}
+.s-pendiente{background:rgba(245,158,11,.15);color:var(--warn)}
+.s-pagado{background:rgba(0,212,170,.15);color:var(--accent)}
+.form-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:14px}
+.alert{padding:12px 16px;border-radius:var(--r);margin-bottom:12px;font-size:13px}
+.alert-success{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);color:var(--success)}
+.alert-danger{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:var(--danger)}
+.alert-warn{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);color:var(--warn)}
+.alert-info{background:rgba(0,153,255,.1);border:1px solid rgba(0,153,255,.3);color:var(--accent2)}
+.imei-box{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:24px;max-width:540px;margin:0 auto}
+.imei-result{margin-top:16px;padding:16px;background:var(--bg3);border-radius:var(--r);border:1px solid var(--border)}
+.imei-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)}
+.imei-row:last-child{border-bottom:none}
+.imei-key{color:var(--text3);font-size:12px}
+.imei-val{font-weight:600;font-size:13px}
+.tabs{display:flex;margin-bottom:16px;border-bottom:1px solid var(--border)}
+.tab{padding:10px 20px;cursor:pointer;color:var(--text2);font-size:13px;font-weight:500;border-bottom:2px solid transparent;transition:.15s}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.section-title{font-size:18px;font-weight:700;margin-bottom:4px}
+.section-sub{font-size:13px;color:var(--text2);margin-bottom:20px}
+.flex{display:flex;align-items:center;gap:8px}
+.flex-between{display:flex;align-items:center;justify-content:space-between}
+.info-box{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:12px;margin-top:12px;font-size:12px;color:var(--text2);line-height:1.6}
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-overlay{position:fixed;inset:0;background:rgba(15,17,23,.85);display:flex;align-items:center;justify-content:center;z-index:999;flex-direction:column;gap:12px}
+.sync-badge{font-size:10px;color:var(--success);display:flex;align-items:center;gap:4px}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--success);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.progress-wrap{height:8px;background:var(--bg4);border-radius:4px;overflow:hidden;margin-top:4px}
+.progress-bar{height:100%;border-radius:4px;transition:width .5s;background:var(--accent)}
+.progress-warn{background:var(--warn)}
+.progress-danger{background:var(--danger)}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:500}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:28px;width:420px;max-width:95vw}
+.modal-title{font-size:16px;font-weight:700;margin-bottom:20px}
+.id-badge{font-family:monospace;font-size:11px;background:var(--bg4);padding:2px 8px;border-radius:4px;color:var(--accent)}
+.text-accent{color:var(--accent)}.text-warn{color:var(--warn)}.text-danger{color:var(--danger)}.text-success{color:var(--success)}
+.text-right{text-align:right}
+.hidden{display:none!important}
+.gap-8{gap:8px}.mt-8{margin-top:8px}.mt-16{margin-top:16px}
+
+.filter-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:14px;margin-bottom:16px}
+.filter-bar .form-group{margin-bottom:0;min-width:130px}
+.filter-bar .form-label{font-size:11px}
+.ac-wrap{position:relative}
+.ac-list{position:absolute;top:100%;left:0;right:0;background:var(--bg3);border:1px solid var(--accent);border-radius:var(--r);z-index:100;max-height:180px;overflow-y:auto;display:none}
+.ac-list.show{display:block}
+.ac-item{padding:8px 12px;cursor:pointer;font-size:13px;color:var(--text)}
+.ac-item:hover{background:var(--bg4);color:var(--accent)}
+.semana-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+.semana-card{background:var(--bg3);border-radius:var(--r);padding:10px;border:1px solid var(--border)}
+.semana-label{font-size:11px;color:var(--text3);font-weight:600;margin-bottom:6px}
+.toggle-switch{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+.toggle-switch:last-child{border-bottom:none}
+.sw{width:36px;height:20px;border-radius:10px;background:var(--bg4);cursor:pointer;position:relative;transition:.2s;border:1px solid var(--border);flex-shrink:0}
+.sw.on{background:var(--accent)}
+.sw::after{content:'';position:absolute;width:14px;height:14px;background:#fff;border-radius:50%;top:2px;left:2px;transition:.2s}
+.sw.on::after{left:18px}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;z-index:500;padding:16px}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:28px;width:440px;max-width:100%}
+.modal-title{font-size:16px;font-weight:700;margin-bottom:20px}
+</style>
+</head>
+<body>
+
+<div id="loadingOverlay" class="loading-overlay hidden">
+  <div class="spinner"></div>
+  <div style="color:var(--text2);font-size:13px" id="loadingText">Conectando...</div>
+</div>
+
+<!-- MODAL CAMBIO DE CONTRASEÑA -->
+<div id="modalPass" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-title">🔒 Cambiar contraseña</div>
+    <div id="modalPassAlert"></div>
+    <div class="form-group"><label class="form-label">Contraseña actual</label><input class="form-control" id="mpPassActual" type="password"></div>
+    <div class="form-group"><label class="form-label">Nueva contraseña</label><input class="form-control" id="mpPassNueva" type="password"></div>
+    <div class="form-group"><label class="form-label">Confirmar nueva contraseña</label><input class="form-control" id="mpPassConfirm" type="password"></div>
+    <div class="flex gap-8" style="margin-top:16px">
+      <button class="btn btn-primary" id="btnCambiarPass" onclick="confirmarCambioPass()">Actualizar contraseña</button>
+      <button class="btn btn-secondary" onclick="cerrarModalPass()" id="btnCerrarPass">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<div id="loginScreen" class="login-wrap">
+<div class="login-card">
+  <div class="login-logo">
+    <div class="big">ECOMTECH</div>
+    <div class="sub">SISTEMA DE GESTIÓN v3 — GOOGLE SHEETS</div>
+  </div>
+  <div id="loginAlert"></div>
+  <div class="form-group"><label class="form-label">Usuario</label><input class="form-control" id="loginUser" placeholder="Ingresa tu usuario"></div>
+  <div class="form-group"><label class="form-label">Contraseña</label><input class="form-control" id="loginPass" type="password" placeholder="••••••••"></div>
+  <button class="btn btn-primary btn-full" id="loginBtn" onclick="doLogin()">Ingresar al Sistema</button>
+  <div class="info-box">admin / admin123 &nbsp;|&nbsp; luis / luis123 &nbsp;|&nbsp; marleni / mar123</div>
+</div>
+</div>
+
+<div id="mainApp" class="app hidden">
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">⚡ ECOMTECH</div>
+      <div class="logo-sub" id="sidebarRole">DASHBOARD</div>
+    </div>
+    <nav class="nav" id="sideNav"></nav>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title" id="topbarTitle">Dashboard</div>
+      <div class="topbar-right">
+        <div class="sync-badge"><div class="dot"></div>Google Sheets</div>
+        <button class="btn btn-secondary btn-sm" onclick="abrirModalPass()" style="font-size:11px">🔒 Contraseña</button>
+        <span id="topbarUser" style="font-size:12px;color:var(--text2)"></span>
+        <span id="topbarBadge" class="badge"></span>
+        <button class="btn-logout" onclick="doLogout()">Salir</button>
+      </div>
+    </div>
+    <div class="content">
+      <div class="page active" id="page-dashboard"></div>
+      <div class="page" id="page-stock"></div>
+      <div class="page" id="page-imei"></div>
+      <div class="page" id="page-ventas"></div>
+      <div class="page" id="page-compras"></div>
+      <div class="page" id="page-cuentas"></div>
+      <div class="page" id="page-proveedores"></div>
+      <div class="page" id="page-gastos"></div>
+      <div class="page" id="page-cierre"></div>
+      <div class="page" id="page-usuarios"></div>
+      <div class="page" id="page-catalogo"></div>
+      <div class="page" id="page-cuotas"></div>
+      <div class="page" id="page-asistencia"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API='https://script.google.com/macros/s/AKfycbwSOb7cMiXd74iiBRLt_5Nja1GeQ-ZBIMT_43sOggww2Is7pXxNTBVnFKqSYV_g5ug-/exec';
+let currentUser=null;
+
+async function api(params){
+  try{
+    const qs=Object.entries(params).map(([k,v])=>k+'='+encodeURIComponent(typeof v==='object'?JSON.stringify(v):v)).join('&');
+    const res=await fetch(API+'?'+qs+'&ts='+Date.now());
+    return JSON.parse(await res.text());
+  }catch(e){
+    try{
+      const res=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(params)});
+      return JSON.parse(await res.text());
+    }catch(e2){return{ok:false,error:'Sin conexión'};}
+  }
+}
+
+function loading(show,msg){document.getElementById('loadingOverlay').classList.toggle('hidden',!show);if(msg)document.getElementById('loadingText').textContent=msg;}
+function setAlert(id,type,msg){const el=document.getElementById(id);if(el)el.innerHTML=`<div class="alert alert-${type}">${msg}</div>`;}
+function fmt(n){return'S/ '+Number(n||0).toLocaleString('es-PE',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function fmtN(n){return Number(n||0).toLocaleString('es-PE',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function today(){return new Date().toISOString().split('T')[0];}
+function mayus(v){return(v||'').toUpperCase().trim();}
+function mesActual(){return new Date().toISOString().slice(0,7);}
+function nextId(arr,prefix){const ids=arr.map(x=>parseInt((x.id||'').replace(prefix,''))||0);return prefix+(Math.max(0,...ids)+1).toString().padStart(3,'0');}
+function genVentaId(){return'VTA-'+Date.now().toString(36).toUpperCase();}
+function spin(){return'<div style="padding:40px;text-align:center"><div class="spinner"></div><div style="margin-top:12px;color:var(--text3);font-size:13px">Cargando desde Google Sheets...</div></div>';}
+
+// ── LOGIN ─────────────────────────────────────────────────
+async function doLogin(){
+  const u=document.getElementById('loginUser').value.trim();
+  const p=document.getElementById('loginPass').value;
+  if(!u||!p){setAlert('loginAlert','warn','Completa usuario y contraseña');return;}
+  const btn=document.getElementById('loginBtn');
+  btn.disabled=true;btn.innerHTML='<span class="spinner"></span> Conectando...';
+  setAlert('loginAlert','info','Conectando con Google Sheets...');
+  await api({accion:'initDB'});
+  const result=await api({accion:'login',usuario:u,pass:p});
+  btn.disabled=false;btn.innerHTML='Ingresar al Sistema';
+  if(!result.ok){setAlert('loginAlert','danger',result.error||'Error de conexión');return;}
+  currentUser=result.user;
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('mainApp').classList.remove('hidden');
+  // Cargar lista maestra
+  api({accion:'getListaMaestra'}).then(lm=>{if(lm.ok)listaMaestra=lm;});
+  initApp();
+  if(result.user.debeCambiarPass){
+    setTimeout(()=>{
+      alert('⚠️ Tu contraseña tiene '+result.user.diasSinCambio+' días sin actualizarse. Por seguridad debes cambiarla ahora.');
+      abrirModalPass(true);
+    },800);
+  }
+}
+
+function doLogout(){
+  currentUser=null;
+  document.getElementById('loginScreen').classList.remove('hidden');
+  document.getElementById('mainApp').classList.add('hidden');
+  document.getElementById('loginUser').value='';
+  document.getElementById('loginPass').value='';
+  document.getElementById('loginAlert').innerHTML='';
+}
+
+function initApp(){
+  document.getElementById('topbarUser').textContent=currentUser.nombre;
+  document.getElementById('topbarBadge').textContent=currentUser.rol==='admin'?'Administrador':'Promotor';
+  document.getElementById('topbarBadge').className='badge '+(currentUser.rol==='admin'?'badge-admin':'badge-promotor');
+  document.getElementById('sidebarRole').textContent=currentUser.rol==='admin'?'ADMINISTRADOR':'PROMOTOR';
+  buildNav();showPage('dashboard');
+}
+
+// ── NAV ───────────────────────────────────────────────────
+const navAdmin=[
+  {s:'Principal'},{id:'dashboard',label:'📊 Dashboard'},
+  {s:'Operaciones'},{id:'imei',label:'🔍 Consulta IMEI'},{id:'ventas',label:'🛒 Ventas'},
+  {id:'stock',label:'📦 Stock'},{id:'compras',label:'🚚 Compras'},
+  {s:'Finanzas'},{id:'cuentas',label:'🏦 Cuentas'},{id:'proveedores',label:'🧾 Proveedores'},
+  {id:'gastos',label:'💰 Gastos'},{id:'cierre',label:'📅 Cierre Diario'},
+  {s:'Equipo'},{id:'cuotas',label:'🎯 Cuotas'},{id:'asistencia',label:'🕐 Asistencia'},
+  {s:'Catálogo'},{id:'catalogo',label:'📋 Catálogo Precios'},
+  {s:'Admin'},{id:'usuarios',label:'👥 Usuarios'},
+];
+const navPromotor=[
+  {s:'Mi Panel'},{id:'dashboard',label:'📊 Mi Dashboard'},{id:'asistencia',label:'🕐 Mi Asistencia'},
+  {s:'Operaciones'},{id:'imei',label:'🔍 Consulta IMEI'},{id:'ventas',label:'🛒 Registrar Venta'},
+  {id:'stock',label:'📦 Ver Stock'},{id:'catalogo',label:'📋 Catálogo Precios'},
+  {s:'Mi Meta'},{id:'cuotas',label:'🎯 Mis Cuotas'},
+];
+
+function buildNav(){
+  const nav=currentUser.rol==='admin'?navAdmin:getNavPromotor();
+  let html='';
+  nav.forEach(n=>{
+    if(n.s)html+=`<div class="nav-section">${n.s}</div>`;
+    else html+=`<div class="nav-item" id="nav-${n.id}" onclick="showPage('${n.id}')">${n.label}</div>`;
+  });
+  document.getElementById('sideNav').innerHTML=html;
+}
+
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+id)?.classList.add('active');
+  document.getElementById('nav-'+id)?.classList.add('active');
+  const titles={dashboard:'Dashboard',stock:'Stock',imei:'Consulta IMEI',ventas:'Ventas',compras:'Compras',cuentas:'Cuentas Bancarias',proveedores:'Pagos Proveedores',gastos:'Gastos',cierre:'Cierre Diario',usuarios:'Usuarios',catalogo:'Catálogo de Precios',cuotas:'Cuotas de Ventas',asistencia:'Asistencia'};
+  document.getElementById('topbarTitle').textContent=titles[id]||id;
+  renderPage(id);
+}
+
+async function renderPage(id){
+  const fns={dashboard:renderDashboard,stock:renderStock,imei:renderIMEI,ventas:renderVentas,compras:renderCompras,cuentas:renderCuentas,proveedores:renderProveedores,gastos:renderGastos,cierre:renderCierre,usuarios:renderUsuarios,catalogo:renderCatalogo,cuotas:renderCuotas,asistencia:renderAsistencia};
+  if(fns[id])await fns[id]();
+}
+
+// ── MODAL CONTRASEÑA ──────────────────────────────────────
+let passObligatorio=false;
+function abrirModalPass(obligatorio=false){
+  passObligatorio=obligatorio;
+  document.getElementById('modalPass').classList.remove('hidden');
+  document.getElementById('btnCerrarPass').style.display=obligatorio?'none':'';
+  document.getElementById('mpPassActual').value='';
+  document.getElementById('mpPassNueva').value='';
+  document.getElementById('mpPassConfirm').value='';
+  document.getElementById('modalPassAlert').innerHTML='';
+}
+function cerrarModalPass(){if(!passObligatorio)document.getElementById('modalPass').classList.add('hidden');}
+async function confirmarCambioPass(){
+  const actual=document.getElementById('mpPassActual').value;
+  const nueva=document.getElementById('mpPassNueva').value;
+  const confirm=document.getElementById('mpPassConfirm').value;
+  if(!actual||!nueva){setAlert('modalPassAlert','warn','Completa todos los campos');return;}
+  if(nueva!==confirm){setAlert('modalPassAlert','danger','Las contraseñas no coinciden');return;}
+  if(nueva.length<6){setAlert('modalPassAlert','warn','Mínimo 6 caracteres');return;}
+  const btn=document.getElementById('btnCambiarPass');
+  btn.disabled=true;btn.innerHTML='<span class="spinner"></span> Guardando...';
+  const r=await api({accion:'cambiarPassword',usuario:currentUser.usuario,passActual:actual,nuevaPass:nueva});
+  btn.disabled=false;btn.innerHTML='Actualizar contraseña';
+  if(r.ok){setAlert('modalPassAlert','success','✓ Contraseña actualizada');setTimeout(()=>cerrarModalPass(),1500);}
+  else setAlert('modalPassAlert','danger',r.error||'Error al actualizar');
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────
+async function renderDashboard(){
+  const page=document.getElementById('page-dashboard');
+  page.innerHTML=spin();
+  const result=await api({accion:'getDashboard'});
+  if(!result.ok){page.innerHTML=`<div class="alert alert-danger">${result.error}</div>`;return;}
+  const {hoy,mes,cuentas,pagosPendientes}=result;
+  const isAdmin=currentUser.rol==='admin';
+  if(!isAdmin){
+    const vRes=await api({accion:'getData',hoja:'ventas'});
+    const ventas=(vRes.data||[]).filter(v=>v.asesor===currentUser.nombre);
+    const misHoy=ventas.filter(v=>v.fecha===today());
+    const misMes=ventas.filter(v=>v.fecha&&v.fecha.startsWith(mesActual()));
+    const cuotaRes=await api({accion:'getAvanceCuotas',mes:mesActual()});
+    const miCuota=(cuotaRes.data||[]).find(c=>c.asesor===currentUser.nombre);
+    let cuotaHtml='';
+    if(miCuota){
+      const pE=Math.min(miCuota.pctEquipos,100);
+      const pA=Math.min(miCuota.pctAccesorios,100);
+      cuotaHtml=`<div class="card"><div class="card-header"><span class="card-title">🎯 Mi avance del mes</span></div><div class="card-body">
+        <div style="margin-bottom:12px"><div class="flex-between"><span style="font-size:12px;color:var(--text2)">Equipos</span><span style="font-size:12px;font-weight:600">${miCuota.avanceEquipos} / ${miCuota.cuotaEquipos}</span></div>
+        <div class="progress-wrap"><div class="progress-bar ${pE>=100?'progress-bar':'progress-warn'}" style="width:${pE}%"></div></div></div>
+        <div><div class="flex-between"><span style="font-size:12px;color:var(--text2)">Accesorios</span><span style="font-size:12px;font-weight:600">${miCuota.avanceAccesorios} / ${miCuota.cuotaAccesorios}</span></div>
+        <div class="progress-wrap"><div class="progress-bar" style="width:${pA}%"></div></div></div>
+      </div></div>`;
+    }
+    page.innerHTML=`<div class="section-title">Mi Dashboard</div><div class="section-sub">${today()} — ${currentUser.nombre}</div>
+    <div class="kpi-grid">
+      <div class="kpi-card"><div class="kpi-label">Mis ventas hoy</div><div class="kpi-value kpi-accent">${fmt(misHoy.reduce((a,v)=>a+parseFloat(v.precioVenta||0),0))}</div><div class="kpi-sub">${misHoy.length} equipo(s)</div></div>
+      <div class="kpi-card"><div class="kpi-label">Ventas del mes</div><div class="kpi-value kpi-info">${fmt(misMes.reduce((a,v)=>a+parseFloat(v.precioVenta||0),0))}</div><div class="kpi-sub">${misMes.length} venta(s)</div></div>
+      <div class="kpi-card"><div class="kpi-label">Equipos mes</div><div class="kpi-value">${misMes.filter(v=>v.tipo==='Celular').length}</div></div>
+      <div class="kpi-card"><div class="kpi-label">Accesorios mes</div><div class="kpi-value">${misMes.filter(v=>v.tipo==='Accesorio').length}</div></div>
+    </div>${cuotaHtml}${tablaVentas(misHoy,'Mis ventas de hoy',false)}`;
+    return;
+  }
+  const cuentasHtml=Object.entries(cuentas||{}).map(([k,v])=>`<div class="flex-between" style="padding:6px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text2);font-size:12px">${k.replace(/_/g,' ')}</span><span style="font-weight:600;color:${parseFloat(v)>=0?'var(--accent)':'var(--danger)'}">${fmt(v)}</span></div>`).join('');
+  const asesorHtml=Object.entries(hoy.porAsesor||{}).map(([k,v])=>`<div class="flex-between" style="padding:6px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text2);font-size:12px">${k}</span><span style="font-weight:600;color:var(--accent)">${fmt(v)}</span></div>`).join('')||'<div style="color:var(--text3);font-size:13px;padding:8px 0">Sin ventas hoy</div>';
+  page.innerHTML=`<div class="section-title">Dashboard Administrador</div><div class="section-sub">Hoy: ${today()} — Tiempo real desde Google Sheets</div>
+  <div class="kpi-grid">
+    <div class="kpi-card"><div class="kpi-label">Ventas del día</div><div class="kpi-value kpi-accent">${fmt(hoy.totalVentas)}</div><div class="kpi-sub">${hoy.cantVentas} venta(s)</div></div>
+    <div class="kpi-card"><div class="kpi-label">Utilidad bruta</div><div class="kpi-value kpi-accent">${fmt(hoy.utilidadBruta)}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Utilidad neta</div><div class="kpi-value ${hoy.utilidadNeta>=0?'kpi-accent':'kpi-danger'}">${fmt(hoy.utilidadNeta)}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Gastos del día</div><div class="kpi-value kpi-warn">${fmt(hoy.gastos)}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Pend. proveedores</div><div class="kpi-value kpi-danger">${fmt(hoy.pendProv)}</div><div class="kpi-sub">${(pagosPendientes||[]).length} pago(s)</div></div>
+    <div class="kpi-card"><div class="kpi-label">Stock disponible</div><div class="kpi-value kpi-info">${hoy.stockDisp}</div><div class="kpi-sub">${hoy.stockVend} vendido(s)</div></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+    <div class="card"><div class="card-header"><span class="card-title">Acumulado del mes</span></div><div class="card-body"><div class="kpi-value kpi-accent" style="font-size:26px">${fmt(mes.totalVentas)}</div><div class="kpi-sub">${mes.cantVentas} ventas — Utilidad: ${fmt(mes.utilidad)}</div></div></div>
+    <div class="card"><div class="card-header"><span class="card-title">Ventas por asesor (hoy)</span></div><div class="card-body">${asesorHtml}</div></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <div class="card"><div class="card-header"><span class="card-title">Saldo por cuenta</span></div><div class="card-body">${cuentasHtml||'Sin datos'}</div></div>
+    <div class="card"><div class="card-header"><span class="card-title">Pagos pendientes</span></div><div class="card-body">${(pagosPendientes||[]).map(p=>`<div class="flex-between" style="padding:6px 0;border-bottom:1px solid var(--border)"><div><div style="font-size:13px">${p.proveedor} — ${p.marca} ${p.modelo}</div><div style="font-size:11px;color:var(--text3)">${p.imei}</div></div><span style="color:var(--warn);font-weight:600">${fmt(p.monto)}</span></div>`).join('')||'<div style="color:var(--success);font-size:13px">Sin pagos pendientes ✓</div>'}</div></div>
+  </div>`;
+}
+
+// ── STOCK ─────────────────────────────────────────────────
+async function renderStock(){
+  const page=document.getElementById('page-stock');
+  const isAdmin=currentUser.rol==='admin';
+  page.innerHTML=spin();
+  const res=await api({accion:'getData',hoja:'stock'});
+  const stock=res.data||[];
+  const filas=stock.map(s=>`<tr>
+    <td><span class="id-badge">${s.id}</span></td>
+    <td><span class="status s-${(s.estado||'').toLowerCase()}">${s.estado}</span></td>
+    <td>${s.tipo}</td><td>${s.marca}</td><td>${s.modelo}</td>
+    <td style="font-family:monospace;font-size:11px">${s.imei}</td><td>${s.color}</td>
+    ${isAdmin?`<td class="text-right text-warn">${fmt(s.precioCompra)}</td>`:''}
+    <td class="text-right text-accent">${fmt(s.precioVenta)}</td>
+    <td>${s.tipoStock}</td><td>${s.proveedor}</td>
+    <td><span class="status ${s.estadoPagoProveedor==='Pagado'?'s-pagado':'s-pendiente'}">${s.estadoPagoProveedor||'Pendiente'}</span></td>
+  </tr>`).join('');
+  page.innerHTML=`<div class="section-title">Stock</div><div class="section-sub">${stock.filter(s=>s.estado==='Disponible').length} disponibles / ${stock.length} total</div>
+  ${isAdmin?`<div class="card"><div class="card-header"><span class="card-title">Registrar nuevo producto</span></div><div class="card-body">
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Tipo</label><select class="form-select" id="sType"><option>Celular</option><option>Accesorio</option><option>Otro</option></select></div>
+      <div class="form-group"><label class="form-label">Marca</label><input class="form-control" id="sMarca"></div>
+      <div class="form-group"><label class="form-label">Modelo</label><input class="form-control" id="sModelo"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">IMEI <span class="req">*</span></label><input class="form-control" id="sImei" placeholder="15 dígitos"></div>
+      <div class="form-group"><label class="form-label">Color</label><input class="form-control" id="sColor"></div>
+      <div class="form-group"><label class="form-label">Precio compra (S/) <span class="req">*</span></label><input class="form-control" id="sPrecioC" type="number"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Precio venta sugerido <span class="req">*</span></label><input class="form-control" id="sPrecioV" type="number"></div>
+      <div class="form-group"><label class="form-label">Proveedor <span class="req">*</span></label><input class="form-control" id="sProveedor" placeholder="Obligatorio"></div>
+      <div class="form-group"><label class="form-label">Estado pago proveedor</label><select class="form-select" id="sEstadoPago"><option>Pendiente</option><option>Pagado</option></select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Tipo stock</label><select class="form-select" id="sTipoStock"><option>Tienda</option><option>Proveedor</option></select></div>
+      <div class="form-group"><label class="form-label">Tipo dinero</label><select class="form-select" id="sTipoDinero"><option>Capital propio</option><option>Compra del día</option></select></div>
+      <div class="form-group"><label class="form-label">Observación</label><input class="form-control" id="sObs"></div>
+    </div>
+    <div id="stockAlert"></div>
+    <button class="btn btn-primary" id="btnStock" onclick="guardarStock()">💾 Guardar en Sheets</button>
+  </div></div>`:''}
+  <div class="card"><div class="card-header"><span class="card-title">Inventario actual</span></div>
+    <div class="card-body"><div class="table-wrap"><table>
+      <thead><tr><th>ID</th><th>Estado</th><th>Tipo</th><th>Marca</th><th>Modelo</th><th>IMEI</th><th>Color</th>
+      ${isAdmin?'<th>Costo</th>':''}<th>P. Venta</th><th>Stock</th><th>Proveedor</th><th>Pago Prov.</th></tr></thead>
+      <tbody>${filas||'<tr><td colspan="12" style="text-align:center;color:var(--text3);padding:24px">Sin registros</td></tr>'}</tbody>
+    </table></div></div></div>`;
+}
+
+async function guardarStock(){
+  const imei=document.getElementById('sImei').value.trim();
+  const precioC=document.getElementById('sPrecioC').value;
+  const precioV=document.getElementById('sPrecioV').value;
+  const proveedor=document.getElementById('sProveedor').value.trim();
+  if(!imei||!precioC||!precioV||!proveedor){setAlert('stockAlert','warn','⚠ IMEI, precio compra, precio venta y proveedor son obligatorios');return;}
+  const btn=document.getElementById('btnStock');btn.disabled=true;btn.innerHTML='<span class="spinner"></span> Guardando...';
+  const res=await api({accion:'getData',hoja:'stock'});const stock=res.data||[];
+  if(stock.find(s=>s.imei===imei)){setAlert('stockAlert','danger','IMEI ya registrado');btn.disabled=false;btn.innerHTML='💾 Guardar en Sheets';return;}
+  const nuevo={id:nextId(stock,'S'),tipo:document.getElementById('sType').value,marca:document.getElementById('sMarca').value,modelo:document.getElementById('sModelo').value,imei,color:document.getElementById('sColor').value,precioCompra:precioC,precioVenta:precioV,tipoStock:document.getElementById('sTipoStock').value,tipoDinero:document.getElementById('sTipoDinero').value,proveedor,cuentaProv:'',estadoPagoProveedor:document.getElementById('sEstadoPago').value,estado:'Disponible',fecha:today(),obs:document.getElementById('sObs').value};
+  const r=await api({accion:'saveRecord',hoja:'stock',data:nuevo});
+  btn.disabled=false;btn.innerHTML='💾 Guardar en Sheets';
+  if(r.ok){setAlert('stockAlert','success','✓ Guardado en Google Sheets');setTimeout(()=>renderStock(),1500);}
+  else setAlert('stockAlert','danger','Error: '+r.error);
+}
+
+// ── IMEI ──────────────────────────────────────────────────
+function renderIMEI(){
+  document.getElementById('page-imei').innerHTML=`<div class="section-title">Consulta por IMEI</div><div class="section-sub">Búsqueda en tiempo real</div>
+  <div class="imei-box">
+    <div class="form-group"><label class="form-label">Ingresar IMEI</label>
+      <div class="flex"><input class="form-control" id="imeiInput" placeholder="Ej: 353001234567890" style="flex:1" onkeydown="if(event.key==='Enter')buscarIMEI()">
+      <button class="btn btn-primary" onclick="buscarIMEI()">🔍 Buscar</button></div>
+    </div><div id="imeiResult"></div>
+  </div>`;
+}
+
+async function buscarIMEI(){
+  const imei=document.getElementById('imeiInput').value.trim();
+  const div=document.getElementById('imeiResult');
+  div.innerHTML='<div style="text-align:center;padding:16px"><div class="spinner"></div></div>';
+  const res=await api({accion:'getData',hoja:'stock'});
+  const eq=(res.data||[]).find(s=>s.imei===imei);
+  if(!eq){div.innerHTML='<div class="alert alert-warn">Este IMEI no se encuentra registrado en stock. Solicitar validación del administrador.</div>';return;}
+  if(eq.estado==='Vendido'){div.innerHTML='<div class="alert alert-danger">Este equipo ya fue vendido. No se puede registrar nuevamente.</div>';return;}
+  const isAdmin=currentUser.rol==='admin';
+  div.innerHTML=`<div class="imei-result">
+    <div class="alert alert-success">Equipo encontrado — <strong>${eq.estado}</strong></div>
+    <div class="imei-row"><span class="imei-key">Marca</span><span class="imei-val">${eq.marca}</span></div>
+    <div class="imei-row"><span class="imei-key">Modelo</span><span class="imei-val">${eq.modelo}</span></div>
+    <div class="imei-row"><span class="imei-key">Color</span><span class="imei-val">${eq.color}</span></div>
+    ${isAdmin?`<div class="imei-row"><span class="imei-key">Precio compra</span><span class="imei-val text-warn">${fmt(eq.precioCompra)}</span></div>`:''}
+    <div class="imei-row"><span class="imei-key">Precio venta sugerido</span><span class="imei-val text-accent">${fmt(eq.precioVenta)}</span></div>
+    <div class="imei-row"><span class="imei-key">Tipo stock</span><span class="imei-val">${eq.tipoStock}</span></div>
+    <div class="imei-row"><span class="imei-key">Proveedor</span><span class="imei-val">${eq.proveedor}</span></div>
+    <div class="imei-row"><span class="imei-key">Pago proveedor</span><span class="imei-val"><span class="status ${eq.estadoPagoProveedor==='Pagado'?'s-pagado':'s-pendiente'}">${eq.estadoPagoProveedor||'Pendiente'}</span></span></div>
+    ${eq.estado==='Disponible'?`<div style="margin-top:12px"><button class="btn btn-primary btn-full" onclick="irAVenderIMEI('${eq.imei}')">🛒 Vender este equipo</button></div>`:''}
+  </div>`;
+}
+
+function irAVenderIMEI(imei){showPage('ventas');setTimeout(()=>{const el=document.getElementById('vImei');if(el){el.value=imei;cargarDatosIMEI();}},300);}
+
+// ── VENTAS ────────────────────────────────────────────────
+let imeiActual=null;
+
+async function renderVentas(){
+  const page=document.getElementById('page-ventas');
+  const isAdmin=currentUser.rol==='admin';
+  page.innerHTML=spin();
+  const [ventasRes,usuariosRes]=await Promise.all([api({accion:'getData',hoja:'ventas'}),api({accion:'getData',hoja:'usuarios'})]);
+  const ventas=ventasRes.data||[];
+  const promotores=(usuariosRes.data||[]).filter(u=>u.rol==='promotor');
+  const hoyV=isAdmin?ventas.filter(v=>v.fecha===today()):ventas.filter(v=>v.asesor===currentUser.nombre&&v.fecha===today());
+  page.innerHTML=`<div class="section-title">Ventas</div><div class="section-sub">Cada venta genera un ID único de seguimiento</div>
+  <div class="card"><div class="card-header"><span class="card-title">Registrar nueva venta</span></div><div class="card-body">
+    <div class="form-row"><div class="form-group"><label class="form-label">IMEI del equipo <span class="req">*</span></label>
+      <div class="flex"><input class="form-control" id="vImei" placeholder="15 dígitos" style="flex:1" onkeydown="if(event.key==='Enter')cargarDatosIMEI()">
+      <button class="btn btn-secondary btn-sm" onclick="cargarDatosIMEI()">🔍 Buscar</button></div>
+    </div></div>
+    <div id="vDatosEquipo" class="hidden">
+      <div class="alert alert-info" id="vInfoEquipo"></div>
+      <div style="background:var(--bg3);border-radius:var(--r);padding:10px 14px;margin-bottom:12px;font-size:12px;color:var(--text2)">
+        ID de venta: <span id="vIdVenta" style="font-family:monospace;color:var(--accent);font-weight:600"></span>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Precio venta final (S/) <span class="req">*</span></label><input class="form-control" id="vPrecioVenta" type="number" oninput="calcularUtilidad()"></div>
+        <div class="form-group"><label class="form-label">Utilidad estimada</label><input class="form-control" id="vUtilidad" readonly></div>
+        <div class="form-group"><label class="form-label">OPSITEL</label><input class="form-control" id="vOpsitel"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">DNI del cliente <span class="req">*</span></label><input class="form-control" id="vDni" placeholder="Obligatorio" maxlength="8"></div>
+        <div class="form-group"><label class="form-label">Nombre del cliente <span class="req">*</span></label><input class="form-control" id="vNombreCliente" placeholder="Obligatorio"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Asesor</label>
+          <select class="form-select" id="vAsesor">${promotores.map(u=>`<option>${u.nombre}</option>`).join('')}</select></div>
+        <div class="form-group"><label class="form-label">Método de pago</label>
+          <select class="form-select" id="vMetodo"><option>Transferencia</option><option>Efectivo</option><option>QULQI</option><option>Estilos</option><option>Mixto</option></select></div>
+        <div class="form-group"><label class="form-label">Banco/Cuenta</label>
+          <select class="form-select" id="vBanco"><option>BCP</option><option>Interbank</option><option>BBVA</option><option>Efectivo</option><option>QULQI</option><option>BCP_EMPRESA</option></select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">N° operación / Detalle</label><input class="form-control" id="vDetalle"></div>
+        <div class="form-group"><label class="form-label">Observación</label><input class="form-control" id="vObs"></div>
+      </div>
+      <div id="ventaAlert"></div>
+      <div class="flex gap-8">
+        <button class="btn btn-primary" id="btnVenta" onclick="registrarVenta()">✅ Confirmar Venta</button>
+        <button class="btn btn-secondary" onclick="cancelarVenta()">Cancelar</button>
+      </div>
+    </div>
+  </div></div>
+
+  <!-- FILTROS V3 -->
+  <div class="filter-bar">
+    <div class="form-group"><label class="form-label">Tipo filtro</label>
+      <select class="form-select" id="fTipo" onchange="actualizarFiltroFecha()" style="min-width:120px">
+        <option value="hoy">Hoy</option><option value="dia">Día exacto</option>
+        <option value="semana">Semana</option><option value="mes">Mes</option>
+        <option value="anio">Año</option><option value="rango">Rango</option><option value="todo">Todo</option>
+      </select>
+    </div>
+    <div id="filtroFechaExtra" style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap"></div>
+    ${isAdmin?`<div class="form-group"><label class="form-label">Asesor</label><select class="form-select" id="fAsesor"><option value="">Todos</option>${promotores.map(u=>`<option>${u.nombre}</option>`).join('')}</select></div>`:''}
+    <div class="form-group"><label class="form-label">Tipo stock</label><select class="form-select" id="fTipoStock"><option value="">Todos</option><option>Tienda</option><option>Proveedor</option></select></div>
+    <div class="form-group"><label class="form-label">Producto</label><select class="form-select" id="fTipoProducto"><option value="">Todos</option><option>Celular</option><option>Accesorio</option></select></div>
+    <button class="btn btn-primary btn-sm" onclick="aplicarFiltros()" style="height:38px">🔍 Filtrar</button>
+    <button class="btn btn-secondary btn-sm" onclick="resetFiltros()" style="height:38px">✕ Limpiar</button>
+  </div>
+  <div id="resumenFiltro"></div>
+  <div id="tablaVentasFiltradas">${tablaVentas(hoyV,'Ventas de hoy',isAdmin)}</div>`;setTimeout(()=>actualizarFiltroFecha(),100);
+}
+
+async function cargarDatosIMEI(){
+  const imei=document.getElementById('vImei').value.trim();
+  const div=document.getElementById('vDatosEquipo');
+  imeiActual=null;div.classList.add('hidden');
+  const res=await api({accion:'getData',hoja:'stock'});
+  const eq=(res.data||[]).find(s=>s.imei===imei);
+  if(!eq){setAlert('ventaAlert','warn','IMEI no encontrado');return;}
+  if(eq.estado==='Vendido'){setAlert('ventaAlert','danger','Este IMEI ya fue vendido');return;}
+  imeiActual=eq;
+  const idVenta=genVentaId();
+  document.getElementById('vIdVenta').textContent=idVenta;
+  document.getElementById('vIdVenta').dataset.id=idVenta;
+  document.getElementById('vInfoEquipo').innerHTML=`<strong>${eq.marca} ${eq.modelo}</strong> — ${eq.color} | Stock: <strong>${eq.tipoStock}</strong> | Proveedor: <strong>${eq.proveedor}</strong> | Precio sugerido: <strong>${fmt(eq.precioVenta)}</strong>`;
+  document.getElementById('vPrecioVenta').value=eq.precioVenta;
+  calcularUtilidad();div.classList.remove('hidden');document.getElementById('ventaAlert').innerHTML='';
+}
+
+function calcularUtilidad(){
+  if(!imeiActual)return;
+  const pv=Number(document.getElementById('vPrecioVenta').value)||0;
+  document.getElementById('vUtilidad').value='S/ '+fmtN(pv-parseFloat(imeiActual.precioCompra||0));
+}
+function cancelarVenta(){imeiActual=null;document.getElementById('vDatosEquipo').classList.add('hidden');document.getElementById('vImei').value='';}
+
+async function registrarVenta(){
+  if(!imeiActual)return;
+  const pv=Number(document.getElementById('vPrecioVenta').value);
+  const dni=document.getElementById('vDni').value.trim();
+  const nombreCliente=document.getElementById('vNombreCliente').value.trim();
+  if(!pv||pv<=0){setAlert('ventaAlert','warn','Precio de venta inválido');return;}
+  if(!dni||!nombreCliente){setAlert('ventaAlert','warn','DNI y nombre del cliente son obligatorios');return;}
+  const btn=document.getElementById('btnVenta');btn.disabled=true;btn.innerHTML='<span class="spinner"></span> Guardando...';
+  const eq=imeiActual;const util=pv-parseFloat(eq.precioCompra||0);const banco=document.getElementById('vBanco').value;
+  const idVenta=document.getElementById('vIdVenta').dataset.id||genVentaId();
+  const ventasRes=await api({accion:'getData',hoja:'ventas'});const ventas=ventasRes.data||[];
+  const venta={id:nextId(ventas,'V'),idVenta,tipo:eq.tipo,marca:eq.marca,modelo:eq.modelo,imei:eq.imei,color:eq.color,precioCompra:eq.precioCompra,precioVenta:pv,utilidad:util,opsitel:document.getElementById('vOpsitel').value,fecha:today(),asesor:document.getElementById('vAsesor').value,metodoPago:document.getElementById('vMetodo').value,banco,detalle:document.getElementById('vDetalle').value,tipoStock:eq.tipoStock,tipoDinero:eq.tipoDinero,estadoPagoProv:(eq.tipoStock==='Proveedor'||eq.tipoDinero==='Compra del día')?'Pendiente':'N/A',dniCliente:dni,nombreCliente,obs:document.getElementById('vObs').value};
+  await api({accion:'saveRecord',hoja:'ventas',data:venta});
+  await api({accion:'updateRecord',hoja:'stock',id:eq.id,field:'estado',value:'Vendido'});
+  await api({accion:'updateCuenta',cuenta:banco,monto:pv,operacion:'suma'});
+  const movsRes=await api({accion:'getData',hoja:'movimientos'});const movs=movsRes.data||[];
+  await api({accion:'saveRecord',hoja:'movimientos',data:{id:nextId(movs,'M'),fecha:today(),cuenta:banco,tipo:'Venta',monto:pv,ref:idVenta,resp:venta.asesor,obs:`${eq.marca} ${eq.modelo} — ${nombreCliente}`}});
+  if(eq.tipoStock==='Proveedor'||eq.tipoDinero==='Compra del día'){
+    const ppRes=await api({accion:'getData',hoja:'pagosProv'});const pp=ppRes.data||[];
+    await api({accion:'saveRecord',hoja:'pagosProv',data:{id:nextId(pp,'PP'),fecha:today(),proveedor:eq.proveedor,imei:eq.imei,marca:eq.marca,modelo:eq.modelo,monto:eq.precioCompra,cuenta:eq.cuentaProv||'BCP',estado:'Pendiente',fechaPago:'',obs:''}});
+  }
+  btn.disabled=false;btn.innerHTML='✅ Confirmar Venta';
+  setAlert('ventaAlert','success',`✓ Venta registrada — ID: ${idVenta} — Utilidad: ${fmt(util)}`);
+  imeiActual=null;document.getElementById('vDatosEquipo').classList.add('hidden');document.getElementById('vImei').value='';
+  setTimeout(()=>renderVentas(),2000);
+}
+
+function tablaVentas(ventas,titulo,showAdmin){
+  const filas=ventas.map(v=>`<tr>
+    <td><span class="id-badge">${v.idVenta||v.id}</span></td><td>${v.fecha}</td>
+    <td>${v.marca} ${v.modelo}</td><td style="font-family:monospace;font-size:11px">${v.imei}</td>
+    <td>${v.dniCliente||''}</td><td>${v.nombreCliente||''}</td>
+    ${showAdmin?`<td class="text-right text-warn">${fmt(v.precioCompra)}</td>`:''}
+    <td class="text-right text-accent">${fmt(v.precioVenta)}</td>
+    ${showAdmin?`<td class="text-right text-success">${fmt(v.utilidad)}</td>`:''}
+    <td>${v.asesor}</td><td>${v.banco}</td>
+    <td><span class="status ${v.tipoStock==='Tienda'?'s-disponible':'s-pendiente'}">${v.tipoStock}</span></td>
+    ${showAdmin?`<td><span class="status ${v.estadoPagoProv==='Pendiente'?'s-pendiente':'s-pagado'}">${v.estadoPagoProv}</span></td>`:''}
+  </tr>`).join('');
+  return `<div class="card" style="margin-top:16px"><div class="card-header"><span class="card-title">${titulo} (${ventas.length})</span></div>
+    <div class="card-body"><div class="table-wrap"><table>
+      <thead><tr><th>ID Venta</th><th>Fecha</th><th>Equipo</th><th>IMEI</th><th>DNI</th><th>Cliente</th>
+      ${showAdmin?'<th>Costo</th>':''}<th>P.Venta</th>${showAdmin?'<th>Utilidad</th>':''}
+      <th>Asesor</th><th>Banco</th><th>Stock</th>${showAdmin?'<th>Pago Prov.</th>':''}
+      </tr></thead>
+      <tbody>${filas||'<tr><td colspan="13" style="text-align:center;color:var(--text3);padding:24px">Sin ventas</td></tr>'}</tbody>
+    </table></div></div></div>`;
+}
+
+// ── COMPRAS ───────────────────────────────────────────────
+async function renderCompras(){
+  if(currentUser.rol!=='admin'){document.getElementById('page-compras').innerHTML='<div class="alert alert-danger">Acceso denegado</div>';return;}
+  const page=document.getElementById('page-compras');page.innerHTML=spin();
+  const res=await api({accion:'getData',hoja:'compras'});const compras=res.data||[];
+  const filas=compras.map(c=>`<tr><td>${c.id}</td><td>${c.fecha}</td><td>${c.marca} ${c.modelo}</td>
+    <td style="font-family:monospace;font-size:11px">${c.imei}</td><td>${c.proveedor}</td>
+    <td class="text-right text-warn">${fmt(c.precio)}</td><td>${c.tipoCompra}</td><td>${c.cuenta}</td>
+    <td><span class="status ${c.estadoPago==='Pagado'?'s-pagado':'s-pendiente'}">${c.estadoPago}</span></td></tr>`).join('');
+  page.innerHTML=`<div class="section-title">Compras</div><div class="section-sub">Se agregan automáticamente al stock</div>
+  <div class="card"><div class="card-header"><span class="card-title">Registrar compra</span></div><div class="card-body">
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Tipo</label><select class="form-select" id="cType"><option>Celular</option><option>Accesorio</option><option>Otro</option></select></div>
+      <div class="form-group"><label class="form-label">Marca</label><input class="form-control" id="cMarca"></div>
+      <div class="form-group"><label class="form-label">Modelo</label><input class="form-control" id="cModelo"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">IMEI <span class="req">*</span></label><input class="form-control" id="cImei"></div>
+      <div class="form-group"><label class="form-label">Color</label><input class="form-control" id="cColor"></div>
+      <div class="form-group"><label class="form-label">Proveedor <span class="req">*</span></label><input class="form-control" id="cProveedor"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Precio compra (S/) <span class="req">*</span></label><input class="form-control" id="cPrecio" type="number"></div>
+      <div class="form-group"><label class="form-label">Tipo compra</label><select class="form-select" id="cTipoCompra"><option>Capital propio</option><option>Compra del día</option><option>Crédito</option><option>Préstamo</option></select></div>
+      <div class="form-group"><label class="form-label">Cuenta usada</label><select class="form-select" id="cCuenta"><option>BCP</option><option>Interbank</option><option>BBVA</option><option>Efectivo</option><option>BCP_EMPRESA</option></select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Precio venta sugerido <span class="req">*</span></label><input class="form-control" id="cPrecioV" type="number"></div>
+      <div class="form-group"><label class="form-label">Estado pago proveedor</label><select class="form-select" id="cEstadoPago"><option>Pendiente</option><option>Pagado</option></select></div>
+      <div class="form-group"><label class="form-label">Observación</label><input class="form-control" id="cObs"></div>
+    </div>
+    <div id="compraAlert"></div>
+    <button class="btn btn-primary" id="btnCompra" onclick="guardarCompra()">💾 Registrar Compra</button>
+  </div></div>
+  <div class="card"><div class="card-header"><span class="card-title">Historial</span></div>
+    <div class="card-body"><div class="table-wrap"><table>
+      <thead><tr><th>ID</th><th>Fecha</th><th>Equipo</th><th>IMEI</th><th>Proveedor</th><th>Costo</th><th>Tipo</th><th>Cuenta</th><th>Estado</th></tr></thead>
+      <tbody>${filas||'<tr><td colspan="9" style="text-align:center;color:var(--text3);padding:24px">Sin compras</td></tr>'}</tbody>
+    </table></div></div></div>`;
+}
+
+async function guardarCompra(){
+  const imei=document.getElementById('cImei').value.trim();
+  const precio=document.getElementById('cPrecio').value;
+  const precioV=document.getElementById('cPrecioV').value;
+  const proveedor=document.getElementById('cProveedor').value.trim();
+  if(!imei||!precio||!proveedor||!precioV){setAlert('compraAlert','warn','IMEI, precio compra, precio venta y proveedor son obligatorios');return;}
+  const btn=document.getElementById('btnCompra');btn.disabled=true;btn.innerHTML='<span class="spinner"></span> Guardando...';
+  const res=await api({accion:'getData',hoja:'stock'});const stock=res.data||[];
+  if(stock.find(s=>s.imei===imei)){setAlert('compraAlert','danger','IMEI ya en stock');btn.disabled=false;btn.innerHTML='💾 Registrar Compra';return;}
+  const tipoCompra=document.getElementById('cTipoCompra').value;
+  const estadoPago=document.getElementById('cEstadoPago').value;
+  const comprasRes=await api({accion:'getData',hoja:'compras'});const compras=comprasRes.data||[];
+  const comp={id:nextId(compras,'C'),fecha:today(),tipo:document.getElementById('cType').value,marca:document.getElementById('cMarca').value,modelo:document.getElementById('cModelo').value,imei,color:document.getElementById('cColor').value,proveedor,precio,tipoCompra,cuenta:document.getElementById('cCuenta').value,estadoPago,fechaLimite:today(),obs:document.getElementById('cObs').value};
+  await api({accion:'saveRecord',hoja:'compras',data:comp});
+  await api({accion:'saveRecord',hoja:'stock',data:{id:nextId(stock,'S'),tipo:comp.tipo,marca:comp.marca,modelo:comp.modelo,imei,color:comp.color,precioCompra:precio,precioVenta:precioV,tipoStock:tipoCompra==='Capital propio'?'Tienda':'Proveedor',tipoDinero:tipoCompra,proveedor,cuentaProv:comp.cuenta,estadoPagoProveedor:estadoPago,estado:'Disponible',fecha:today(),obs:comp.obs}});
+  btn.disabled=false;btn.innerHTML='💾 Registrar Compra';
+  setAlert('compraAlert','success','✓ Compra y stock registrados en Sheets');setTimeout(()=>renderCompras(),2000);
+}
+
+// ── CUENTAS ───────────────────────────────────────────────
+async function renderCuentas(){
+  if(currentUser.rol!=='admin'){document.getElementById('page-cuentas').innerHTML='<div class="alert alert-danger">Acceso denegado</div>';return;}
+  const page=document.getElementById('page-cuentas');page.innerHTML=spin();
+  const [cRes,mRes]=await Promise.all([api({accion:'getCuentas'}),api({accion:'getData',hoja:'movimientos'})]);
+  const cuentas=cRes.data||{};const movs=mRes.data||[];
+  const total=Object.values(cuentas).reduce((a,b)=>a+parseFloat(b||0),0);
+  const cards=Object.entries(cuentas).map(([k,v])=>`<div class="kpi-card"><div class="kpi-label">${k.replace(/_/g,' ')}</div><div class="kpi-value ${parseFloat(v)>=0?'kpi-accent':'kpi-danger'}">${fmt(v)}</div></div>`).join('');
+  const movFilas=movs.slice(-20).reverse().map(m=>`<tr><td>${m.fecha}</td><td>${m.cuenta}</td>
+    <td><span class="status ${['Venta','Ingreso','Capital'].includes(m.tipo)?'s-disponible':'s-pendiente'}">${m.tipo}</span></td>
+    <td class="text-right ${['Venta','Ingreso','Capital'].includes(m.tipo)?'text-accent':'text-danger'}">${fmt(m.monto)}</td>
+    <td>${m.resp}</td><td>${m.obs}</td></tr>`).join('');
+  page.innerHTML=`<div class="section-title">Cuentas Bancarias</div><div class="section-sub">Saldo total: <strong class="text-accent">${fmt(total)}</strong></div>
+  <div class="kpi-grid">${cards}</div>
+  <div class="card"><div class="card-header"><span class="card-title">Registrar movimiento</span></div><div class="card-body">
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Cuenta</label><select class="form-select" id="mCuenta">${Object.keys(cuentas).map(k=>`<option>${k}</option>`).join('')}</select></div>
+      <div class="form-group"><label class="form-label">Tipo</label><select class="form-select" id="mTipo"><option>Ingreso</option><option>Egreso</option><option>Capital</option><option>Transferencia</option><option>Préstamo</option></select></div>
+      <div class="form-group"><label class="form-label">Monto (S/)</label><input class="form-control" id="mMonto" type="number"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Responsable</label><input class="form-control" id="mResp" value="${currentUser.nombre}"></div>
+      <div class="form-group"><label class="form-label">Observación</label><input class="form-control" id="mObs"></div>
+    </div>
+    <div id="cuentaAlert"></div>
+    <button class="btn btn-primary" id="btnMov" onclick="registrarMovimiento()">💾 Registrar</button>
+  </div></div>
+  <div class="card"><div class="card-header"><span class="card-title">Últimos movimientos</span></div>
+    <div class="card-body"><div class="table-wrap"><table>
+      <thead><tr><th>Fecha</th><th>Cuenta</th><th>Tipo</th><th>Monto</th><th>Responsable</th><th>Detalle</th></tr></thead>
+      <tbody>${movFilas||'<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:24px">Sin movimientos</td></tr>'}</tbody>
+    </table></div></div></div>`;
+}
+
+async function registrarMovimiento(){
+  const cuenta=document.getElementById('mCuenta').value;const tipo=document.getElementById('mTipo').value;
+  const monto=parseFloat(document.getElementById('mMonto').value);
+  if(!monto||monto<=0){setAlert('cuentaAlert','warn','Monto inválido');return;}
+  const btn=document.getElementById('btnMov');btn.disabled=true;btn.innerHTML='<span class="spinner"></span>';
+  const esIngreso=['Ingreso','Capital','Transferencia'].includes(tipo);
+  await api({accion:'updateCuenta',cuenta,monto,operacion:esIngreso?'suma':'resta'});
+  const mRes=await api({accion:'getData',hoja:'movimientos'});const movs=mRes.data||[];
+  await api({accion:'saveRecord',hoja:'movimientos',data:{id:nextId(movs,'M'),fecha:today(),cuenta,tipo,monto,ref:'',resp:document.getElementById('mResp').value,obs:document.getElementById('mObs').value}});
+  btn.disabled=false;btn.innerHTML='💾 Registrar';
+  setAlert('cuentaAlert','success','✓ Movimiento guardado');setTimeout(()=>renderCuentas(),1500);
+}
+// end tabMov handled in HTML
+
+// ── PROVEEDORES ───────────────────────────────────────────
+async function renderProveedores(){
+  if(currentUser.rol!=='admin'){document.getElementById('page-proveedores').innerHTML='<div class="alert alert-danger">Acceso denegado</div>';return;}
+  const page=document.getElementById('page-proveedores');page.innerHTML=spin();
+  const res=await api({accion:'getData',hoja:'pagosProv'});const pp=res.data||[];
+  const pendiente=pp.filter(p=>p.estado==='Pendiente').reduce((a,p)=>a+parseFloat(p.monto||0),0);
+  const filas=pp.map(p=>`<tr><td>${p.id}</td><td>${p.fecha}</td><td>${p.proveedor}</td>
+    <td>${p.marca} ${p.modelo}</td><td style="font-family:monospace;font-size:11px">${p.imei}</td>
+    <td class="text-right text-warn">${fmt(p.monto)}</td><td>${p.cuenta}</td>
+    <td><span class="status ${p.estado==='Pagado'?'s-pagado':'s-pendiente'}">${p.estado}</span></td>
+    <td>${p.estado==='Pendiente'?`<button class="btn btn-warning btn-sm" onclick="pagarProveedor('${p.id}','${p.monto}','${p.cuenta}','${p.proveedor}','${p.marca} ${p.modelo}')">✓ Pagar</button>`:p.fechaPago}</td></tr>`).join('');
+  page.innerHTML=`<div class="section-title">Pagos a Proveedores</div><div class="section-sub">Pendiente: <strong class="text-warn">${fmt(pendiente)}</strong></div>
+  ${pendiente>0?`<div class="alert alert-warn">${pp.filter(p=>p.estado==='Pendiente').length} pago(s) pendiente(s)</div>`:'<div class="alert alert-success">Sin pagos pendientes ✓</div>'}
+  <div class="card"><div class="card-header"><span class="card-title">Registro de pagos</span></div>
+    <div class="card-body"><div class="table-wrap"><table>
+      <thead><tr><th>ID</th><th>Fecha</th><th>Proveedor</th><th>Equipo</th><th>IMEI</th><th>Monto</th><th>Cuenta</th><th>Estado</th><th>Acción</th></tr></thead>
+      <tbody>${filas||'<tr><td colspan="9" style="text-align:center;color:var(--text3);padding:24px">Sin registros</td></tr>'}</tbody>
+    </table></div></div></div>`;
+}
+
+async function pagarProveedor(id,monto,cuenta,proveedor,equipo){
+  if(!confirm(`¿Confirmar pago de ${fmt(monto)} a ${proveedor} (${equipo})?`))return;
+  loading(true,'Registrando pago...');
+  await api({accion:'updateRecord',hoja:'pagosProv',id,field:'estado',value:'Pagado'});
+  await api({accion:'updateRecord',hoja:'pagosProv',id,field:'fechaPago',value:today()});
+  await api({accion:'updateCuenta',cuenta,monto:parseFloat(monto),operacion:'resta'});
+  const mRes=await api({accion:'getData',hoja:'movimientos'});const movs=mRes.data||[];
+  await api({accion:'saveRecord',hoja:'movimientos',data:{id:nextId(movs,'M'),fecha:today(),cuenta,tipo:'Pago proveedor',monto,ref:id,resp:currentUser.nombre,obs:`${proveedor} — ${equipo}`}});
+  loading(false);renderProveedores();
+}
+
+// ── GASTOS ────────────────────────────────────────────────
+async function renderGastos(){
+  if(currentUser.rol!=='admin'){document.getElementById('page-gastos').innerHTML='<div class="alert alert-danger">Acceso denegado</div>';return;}
+  const page=document.getElementById('page-gastos');page.innerHTML=spin();
+  const [gfRes,gdRes,catRes]=await Promise.all([api({accion:'getData',hoja:'gastosFijos'}),api({accion:'getData',hoja:'gastosDiarios'}),api({accion:'getData',hoja:'categoriasGasto'})]);
+  const gf=gfRes.data||[];const gd=gdRes.data||[];const cats=catRes.data||[];
+  const catsActivas=cats.filter(c=>c.activo==='1').map(c=>c.nombre);
+  const totalFijos=gf.reduce((a,g)=>a+parseFloat(g.monto||0),0);
+  const totalHoy=gd.filter(g=>g.fecha===today()).reduce((a,g)=>a+parseFloat(g.monto||0),0);
+  const filasFijos=gf.map(g=>`<tr><td>${g.cat}</td><td>${g.resp}</td><td style="font-family:monospace;font-size:11px">${g.cuenta}</td>
+    <td class="text-right text-warn">${fmt(g.monto)}</td><td>${g.fechaPago}</td><td>${g.freq}</td>
+    <td><span class="status ${g.estado==='Pagado'?'s-pagado':'s-pendiente'}">${g.estado}</span></td></tr>`).join('');
+  const filasDiarios=gd.slice(-30).reverse().map(g=>`<tr><td>${g.fecha}</td><td>${g.cat}</td><td>${g.desc}</td>
+    <td class="text-right text-danger">${fmt(g.monto)}</td><td>${g.cuenta}</td><td>${g.resp}</td></tr>`).join('');
+  const opcionsCat=catsActivas.map(c=>`<option>${c}</option>`).join('');
+  page.innerHTML=`<div class="section-title">Gastos</div><div class="section-sub">Fijos y diarios</div>
+  <div class="kpi-grid">
+    <div class="kpi-card"><div class="kpi-label">Gastos fijos/mes</div><div class="kpi-value kpi-warn">${fmt(totalFijos)}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Gastos de hoy</div><div class="kpi-value kpi-danger">${fmt(totalHoy)}</div></div>
+  </div>
+  <div class="tabs">
+    <div class="tab active" id="tabFijosBtn" onclick="switchTab2('fijos')">Gastos Fijos</div>
+    <div class="tab" id="tabDiariosBtn" onclick="switchTab2('diarios')">Gastos del Día</div>
+    <div class="tab" id="tabCatsBtn" onclick="switchTab2('cats')">Categorías</div>
+  </div>
+  <div id="tabFijos2">
+    <div class="card"><div class="card-header"><span class="card-title">Gastos fijos del mes (${fmt(totalFijos)})</span></div>
+      <div class="card-body"><div class="table-wrap"><table>
+        <thead><tr><th>Categoría</th><th>Responsable</th><th>Cuenta/N°</th><th>Monto</th><th>Día pago</th><th>Frecuencia</th><th>Estado</th></tr></thead>
+        <tbody>${filasFijos}</tbody>
+      </table></div></div></div>
+  </div>
+  <div id="tabDiarios2" class="hidden">
+    <div class="card"><div class="card-header"><span class="card-title">Registrar gasto del día</span></div><div class="card-body">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Categoría <span class="req">*</span></label>
+          <select class="form-select" id="gdCat">${opcionsCat}</select></div>
+        <div class="form-group"><label class="form-label">Descripción</label><input class="form-control" id="gdDesc"></div>
+        <div class="form-group"><label class="form-label">Monto (S/) <span class="req">*</span></label><input class="form-control" id="gdMonto" type="number"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Cuenta usada</label><select class="form-select" id="gdCuenta"><option>Efectivo</option><option>BCP</option><option>BCP_EMPRESA</option><option>Interbank</option></select></div>
+        <div class="form-group"><label class="form-label">Comprobante</label><select class="form-select" id="gdComp"><option>Sí</option><option>No</option></select></div>
+        <div class="form-group"><label class="form-label">Observación</label><input class="form-control" id="gdObs"></div>
+      </div>
+      <div id="gdAlert"></div>
+      <button class="btn btn-primary" id="btnGasto" onclick="guardarGastoDiario()">💾 Registrar gasto</button>
+    </div></div>
+    <div class="card"><div class="card-header"><span class="card-title">Gastos recientes</span></div>
+      <div class="card-body"><div class="table-wrap"><table>
+        <thead><tr><th>Fecha</th><th>Categoría</th><th>Descripción</th><th>Monto</th><th>Cuenta</th><th>Responsable</th></tr></thead>
+        <tbody>${filasDiarios||'<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:24px">Sin gastos</td></tr>'}</tbody>
+      </table></div></div></div>
+  </div>
+  <div id="tabCats2" class="hidden">
+    <div class="card"><div class="card-header"><span class="card-title">Crear nueva categoría de gasto</span></div><div class="card-body">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Nombre de la categoría</label><input class="form-control" id="nuevaCat" placeholder="Ej: TRANSPORTE"></div>
+      </div>
+      <div id="catAlert"></div>
+      <button class="btn btn-primary" onclick="crearCategoria()">➕ Crear categoría</button>
+    </div></div>
+    <div class="card"><div class="card-header"><span class="card-title">Categorías registradas</span></div>
+      <div class="card-body"><div class="table-wrap"><table>
+        <thead><tr><th>Nombre</th><th>Estado</th></tr></thead>
+        <tbody>${cats.map(c=>`<tr><td>${c.nombre}</td><td><span class="status ${c.activo==='1'?'s-disponible':'s-vendido'}">${c.activo==='1'?'Activa':'Inactiva'}</span></td></tr>`).join('')}</tbody>
+      </table></div></div></div>
+  </div>`;
+}
+
+function switchTab2(t){
+  ['fijos','diarios','cats'].forEach(x=>{
+    document.getElementById('tab'+x.charAt(0).toUpperCase()+x.slice(1)+'Btn').classList.toggle('active',x===t);
+    document.getElementById('tab'+x.charAt(0).toUpperCase()+x.slice(1)+'2').classList.toggle('hidden',x!==t);
+  });
+}
+
+async function crearCategoria(){
+  const nombre=document.getElementById('nuevaCat').value.trim().toUpperCase();
+  if(!nombre){setAlert('catAlert','warn','Ingresa el nombre');return;}
+  const res=await api({accion:'getData',hoja:'categoriasGasto'});
+  const cats=res.data||[];
+  if(cats.find(c=>c.nombre===nombre)){setAlert('catAlert','warn','Ya existe esta categoría');return;}
+  await api({accion:'saveRecord',hoja:'categoriasGasto',data:{id:nextId(cats,'CG'),nombre,activo:'1'}});
+  setAlert('catAlert','success','✓ Categoría creada');setTimeout(()=>renderGastos(),1500);
+}
+
+async function guardarGastoDiario(){
+  const monto=parseFloat(document.getElementById('gdMonto').value);
+  if(!monto||monto<=0){setAlert('gdAlert','warn','Monto inválido');return;}
+  const btn=document.g
