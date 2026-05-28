@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ECOMTECH v3</title>
+<title>FULL CELL STORE v3</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#0f1117;--bg2:#1a1d27;--bg3:#252836;--bg4:#2e3245;--accent:#00d4aa;--accent2:#0099ff;--warn:#f59e0b;--danger:#ef4444;--success:#10b981;--text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;--border:#2e3245;--r:8px;--r2:12px}
@@ -152,21 +152,21 @@ tr:hover td{background:var(--bg3);color:var(--text)}
 <div id="loginScreen" class="login-wrap">
   <div class="login-card">
     <div class="login-logo">
-      <div class="big">ECOMTECH</div>
-      <div class="sub">SISTEMA DE GESTION v3 - GOOGLE SHEETS</div>
+      <div class="big">FULL CELL STORE</div>
+      <div class="sub">Sistema de Gestion Comercial v4</div>
     </div>
     <div id="loginAlert"></div>
     <div class="form-group"><label class="form-label">Usuario</label><input class="form-control" id="loginUser" placeholder="Usuario"></div>
     <div class="form-group"><label class="form-label">Contrasena</label><input class="form-control" id="loginPass" type="password" placeholder="********"></div>
     <button class="btn btn-primary btn-full" id="loginBtn" onclick="doLogin()">Ingresar al Sistema</button>
-    <div class="info-box">admin/admin123 | luis/luis123 | marleni/mar123</div>
+    
   </div>
 </div>
 
 <div id="mainApp" class="app hidden">
   <div class="sidebar">
     <div class="sidebar-header">
-      <div class="logo">ECOMTECH</div>
+      <div class="logo">FULL CELL STORE</div>
       <div class="logo-sub" id="sidebarRole">v3</div>
     </div>
     <nav class="nav" id="sideNav"></nav>
@@ -196,6 +196,8 @@ tr:hover td{background:var(--bg3);color:var(--text)}
       <div class="page" id="page-catalogo"></div>
       <div class="page" id="page-cuotas"></div>
       <div class="page" id="page-asistencia"></div>
+      <div class="page" id="page-auditoria"></div>
+      <div class="page" id="page-caja"></div>
     </div>
   </div>
 </div>
@@ -260,9 +262,10 @@ function doLogout() {
 
 function initApp() {
   document.getElementById('topbarUser').textContent = currentUser.nombre;
-  document.getElementById('topbarBadge').textContent = currentUser.rol==='admin'?'Administrador':'Promotor';
+  document.getElementById('topbarBadge').textContent = currentUser.rol==='admin'?'Admin':'Promotor';
   document.getElementById('topbarBadge').className = 'badge '+(currentUser.rol==='admin'?'badge-admin':'badge-promotor');
-  document.getElementById('sidebarRole').textContent = currentUser.rol==='admin'?'ADMIN':'PROMOTOR';
+  document.getElementById('sidebarRole').textContent = currentUser.rol==='admin'?'ADMINISTRADOR':'PROMOTOR';
+  currentUser.esAdminPrincipal = currentUser.nivelAdmin==='1'||currentUser.rol==='admin';
   buildNav();
   showPage('dashboard');
 }
@@ -278,9 +281,9 @@ var navAdmin = [
   {id:'stock',label:'Stock'},{id:'compras',label:'Compras'},
   {s:'Finanzas'},{id:'cuentas',label:'Cuentas'},{id:'proveedores',label:'Proveedores'},
   {id:'gastos',label:'Gastos'},{id:'cierre',label:'Cierre'},
-  {s:'Equipo'},{id:'cuotas',label:'Cuotas'},{id:'asistencia',label:'Asistencia'},
+  {s:'Equipo'},{id:'cuotas',label:'Cuotas'},{id:'caja',label:'Mi Caja'},{id:'asistencia',label:'Asistencia'},
   {s:'Catalogo'},{id:'catalogo',label:'Catalogo Precios'},
-  {s:'Admin'},{id:'usuarios',label:'Usuarios'}
+  {s:'Admin'},{id:'auditoria',label:'Auditoria'},{id:'usuarios',label:'Usuarios'}
 ];
 
 function buildNav() {
@@ -289,8 +292,8 @@ function buildNav() {
   var items = isAdmin ? navAdmin : [
     {s:'Mi Panel'},{id:'dashboard',label:'Mi Dashboard'},{id:'asistencia',label:'Asistencia'},
     {s:'Operaciones'},{id:'imei',label:'IMEI'},{id:'ventas',label:'Venta'},
-    {id:'stock',label:'Stock'},{id:'catalogo',label:'Catalogo'},
-    {s:'Mi Meta'},{id:'cuotas',label:'Cuotas'}
+    {id:'stock',label:'Stock'},{id:'catalogo',label:'Catalogo'},{id:'caja',label:'Caja Diaria'},
+    {s:'Mi Meta'},{id:'cuotas',label:'Cuotas'},{id:'caja',label:'Mi Caja'}
   ].concat(extras.indexOf('compras')!==-1?[{s:'Extra'},{id:'compras',label:'Compras'}]:[])
    .concat(extras.indexOf('cuentas')!==-1?[{id:'cuentas',label:'Cuentas'}]:[]);
   var html = '';
@@ -350,10 +353,18 @@ function renderDashboard() {
         var ventas=(vRes.data||[]).filter(function(v){return v.asesor===currentUser.nombre;});
         var misHoy=ventas.filter(function(v){return v.fecha===today();});
         var misMes=ventas.filter(function(v){return v.fecha&&v.fecha.startsWith(mesActual());});
-        page.innerHTML='<div class="section-title">Mi Dashboard</div><div class="section-sub">'+today()+' - '+currentUser.nombre+'</div>'+
+        var ayerStr=ayer();
+        var misAyer=ventas.filter(function(v){return v.asesor===currentUser.nombre&&v.fecha===ayerStr;});
+        var vendAyer=misAyer.reduce(function(a,v){return a+parseFloat(v.precioVenta||0);},0);
+        page.innerHTML='<div class="section-title">Buen dia, '+currentUser.nombre+'</div><div class="section-sub">'+today()+' - Tu panel de control</div>'+
+          '<div style="background:linear-gradient(135deg,rgba(59,130,246,.1),rgba(16,185,129,.05));border:1px solid rgba(59,130,246,.2);border-radius:12px;padding:20px;margin-bottom:16px">'+
+          '<div style="font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase;margin-bottom:12px">Tu cuota de hoy</div>'+
+          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">'+
+          '<div><div style="font-size:12px;color:var(--text2)">Vendido hoy</div><div style="font-size:32px;font-weight:700;color:var(--accent)">'+fmt(misHoy.reduce(function(a,v){return a+parseFloat(v.precioVenta||0);},0))+'</div><div style="font-size:12px;color:var(--text3)">'+misHoy.length+' venta(s)</div></div>'+
+          '<div><div style="font-size:12px;color:var(--text2)">Vendido ayer</div><div style="font-size:24px;font-weight:700;color:var(--warn)">'+fmt(vendAyer)+'</div><div style="font-size:12px;color:var(--text3)">'+misAyer.length+' venta(s)</div></div>'+
+          '</div></div>'+
           '<div class="kpi-grid">'+
-          '<div class="kpi-card"><div class="kpi-label">Ventas hoy</div><div class="kpi-value kpi-accent">'+fmt(misHoy.reduce(function(a,v){return a+parseFloat(v.precioVenta||0);},0))+'</div><div class="kpi-sub">'+misHoy.length+' venta(s)</div></div>'+
-          '<div class="kpi-card"><div class="kpi-label">Ventas del mes</div><div class="kpi-value kpi-info">'+fmt(misMes.reduce(function(a,v){return a+parseFloat(v.precioVenta||0);},0))+'</div></div>'+
+          '<div class="kpi-card"><div class="kpi-label">Ventas del mes</div><div class="kpi-value kpi-accent">'+fmt(misMes.reduce(function(a,v){return a+parseFloat(v.precioVenta||0);},0))+'</div></div>'+
           '<div class="kpi-card"><div class="kpi-label">Equipos mes</div><div class="kpi-value">'+misMes.filter(function(v){return v.tipo==='Celular';}).length+'</div></div>'+
           '<div class="kpi-card"><div class="kpi-label">Accesorios mes</div><div class="kpi-value">'+misMes.filter(function(v){return v.tipo==='Accesorio';}).length+'</div></div>'+
           '</div>'+tablaVentas(misHoy,'Mis ventas de hoy',false);
@@ -491,11 +502,11 @@ function renderVentas(){
       '<div class="form-group"><label class="form-label">Utilidad</label><input class="form-control" id="vUtilidad" readonly></div>'+
       '<div class="form-group"><label class="form-label">OPSITEL</label><input class="form-control" id="vOpsitel"></div></div>'+
       '<div class="form-row"><div class="form-group"><label class="form-label">DNI cliente <span class="req">*</span></label><input class="form-control" id="vDni" maxlength="8"></div>'+
-      '<div class="form-group"><label class="form-label">Nombre cliente <span class="req">*</span></label><input class="form-control" id="vNombreCliente" oninput="this.value=this.value.toUpperCase()"></div></div>'+
-      '<div class="form-row"><div class="form-group"><label class="form-label">Asesor</label><select class="form-select" id="vAsesor">'+optsAsesor+'</select></div>'+
+      '<div class="form-group"><label class="form-label">Nombre cliente <span class="req">*</span></label><input class="form-control" id="vNombreCliente" oninput="this.value=this.value.toUpperCase()"></div><div class="form-group"><label class="form-label">Telefono cliente</label><input class="form-control" id="vTelefono" placeholder="9XXXXXXXX"></div></div>'+
+      '<div class="form-row"><div class="form-group"><label class="form-label">Origen del stock <span class="req">*</span></label><select class="form-select" id="vOrigenStock"><option value="Tienda">Stock Tienda</option><option value="Proveedor dia">Compra Proveedor del Dia</option></select></div><div class="form-group"><label class="form-label">Asesor</label><select class="form-select" id="vAsesor">'+optsAsesor+'</select></div>'+
       '<div class="form-group"><label class="form-label">Metodo pago</label><select class="form-select" id="vMetodo"><option>Transferencia</option><option>Efectivo</option><option>QULQI</option><option>Estilos</option><option>Mixto</option></select></div>'+
       '<div class="form-group"><label class="form-label">Banco/Cuenta</label><select class="form-select" id="vBanco"><option>BCP</option><option>Interbank</option><option>BBVA</option><option>Efectivo</option><option>QULQI</option><option>BCP_EMPRESA</option></select></div></div>'+
-      '<div class="form-row"><div class="form-group"><label class="form-label">N operacion</label><input class="form-control" id="vDetalle"></div>'+
+      '<div class="form-row"><div class="form-group"><label class="form-label">Lista Blanca/OPSITEL</label><select class="form-select" id="vListaBlanca"><option value="No registrado">No registrado</option><option value="Pendiente">Pendiente de registro</option><option value="Registrado">Registrado</option></select></div><div class="form-group"><label class="form-label">N operacion</label><input class="form-control" id="vDetalle"></div>'+
       '<div class="form-group"><label class="form-label">Observacion</label><input class="form-control" id="vObs"></div></div>'+
       '<div id="ventaAlert"></div><div class="flex gap-8"><button class="btn btn-primary" id="btnVenta" onclick="registrarVenta()">Confirmar Venta</button><button class="btn btn-secondary" onclick="cancelarVenta()">Cancelar</button></div>'+
       '</div></div></div>'+
@@ -1084,14 +1095,84 @@ function exportarCSV(){
     apiCall({accion:'getData',hoja:'stock'}, function(sRes){
       loading(false);
       var ventas=vRes.data||[], stock=sRes.data||[];
-      var csv='REPORTE ECOMTECH v3 - '+today()+'\n\nVENTAS\nID Venta,Fecha,Marca,Modelo,IMEI,DNI,Cliente,Costo,P.Venta,Utilidad,Asesor,Banco,Stock\n';
+      var csv='REPORTE FULL CELL STORE v3 - '+today()+'\n\nVENTAS\nID Venta,Fecha,Marca,Modelo,IMEI,DNI,Cliente,Costo,P.Venta,Utilidad,Asesor,Banco,Stock\n';
       ventas.forEach(function(v){csv+=[(v.idVenta||v.id),v.fecha,v.marca,v.modelo,v.imei,(v.dniCliente||''),(v.nombreCliente||''),v.precioCompra,v.precioVenta,v.utilidad,v.asesor,v.banco,v.tipoStock].join(',')+'\n';});
       csv+='\nSTOCK\nID,Estado,Marca,Modelo,IMEI,Color,Costo,P.Venta,Tipo,Proveedor\n';
       stock.forEach(function(s){csv+=[s.id,s.estado,s.marca,s.modelo,s.imei,s.color,s.precioCompra,s.precioVenta,s.tipoStock,s.proveedor].join(',')+'\n';});
       var blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
-      var url=URL.createObjectURL(blob); var a=document.createElement('a'); a.href=url; a.download='REPORTE_ECOMTECH_'+today()+'.csv'; a.click(); URL.revokeObjectURL(url);
+      var url=URL.createObjectURL(blob); var a=document.createElement('a'); a.href=url; a.download='REPORTE_FULL CELL STORE_'+today()+'.csv'; a.click(); URL.revokeObjectURL(url);
     });
   });
+}
+
+
+
+// ── RENDER AUDITORIA ─────────────────────────────────────
+function renderAuditoria(){
+  if(currentUser.rol!=='admin'){document.getElementById('page-auditoria').innerHTML='<div class="alert alert-danger">Acceso denegado</div>';return;}
+  var page=document.getElementById('page-auditoria');page.innerHTML=spin();
+  apiCall({accion:'getData',hoja:'auditoria'},function(res){
+    var audit=res.data||[];
+    var filas=audit.slice(-100).reverse().map(function(a){return '<tr><td>'+a.fecha+'</td><td>'+(a.hora||'')+'</td><td><strong>'+a.usuario+'</strong></td><td>'+a.accion+'</td><td>'+a.modulo+'</td><td style="font-size:12px;color:var(--text2)">'+a.detalle+'</td></tr>';}).join('');
+    page.innerHTML='<div class="section-title">Auditoria del Sistema</div>'+
+    '<div class="section-sub">Registro de acciones por usuario - Ultimas 100 acciones</div>'+
+    '<div class="card"><div class="card-body"><div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Hora</th><th>Usuario</th><th>Accion</th><th>Modulo</th><th>Detalle</th></tr></thead>'+
+    '<tbody>'+(filas||'<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:24px">Sin registros aun</td></tr>')+'</tbody></table></div></div></div>';
+  });
+}
+
+// ── RENDER CAJA DIARIA ────────────────────────────────────
+function renderCaja(){
+  var page=document.getElementById('page-caja');
+  var isAdmin=currentUser.rol==='admin';
+  page.innerHTML=spin();
+  apiCall({accion:'getData',hoja:'cajaDiaria'},function(res){
+    apiCall({accion:'getCuentas'},function(cRes){
+      var cajas=res.data||[];
+      var cuentasLista=Object.keys(cRes.data||{});
+      var optC=cuentasLista.map(function(c){return '<option>'+c+'</option>';}).join('');
+      var hoy=today();
+      var cajasHoy=cajas.filter(function(c){return c.fecha===hoy;});
+      var miCajaHoy=cajasHoy.find(function(c){return c.promotor===currentUser.nombre;});
+      var totalEfectivo=cajasHoy.reduce(function(a,c){return a+parseFloat(c.montoEfectivo||0);},0);
+      var totalBanco=cajasHoy.reduce(function(a,c){return a+parseFloat(c.montoBanco||0);},0);
+      var miForm=!isAdmin?'<div class="card"><div class="card-header"><span class="card-title">Mi Caja de Hoy - '+hoy+'</span></div><div class="card-body">'+
+      (miCajaHoy?'<div class="alert alert-success">Caja registrada hoy - Efectivo: '+fmt(miCajaHoy.montoEfectivo)+' | Banco: '+fmt(miCajaHoy.montoBanco)+'</div>':'')+
+      '<div class="form-row"><div class="form-group"><label class="form-label">Monto efectivo recibido (S/)</label><input class="form-control" id="cajaEfectivo" type="number" placeholder="0.00" value="'+(miCajaHoy?miCajaHoy.montoEfectivo:'')+'"></div>'+
+      '<div class="form-group"><label class="form-label">Monto via banco/digital (S/)</label><input class="form-control" id="cajaBanco" type="number" placeholder="0.00" value="'+(miCajaHoy?miCajaHoy.montoBanco:'')+'"></div>'+
+      '<div class="form-group"><label class="form-label">Entidad bancaria</label><select class="form-select" id="cajaCuenta">'+optC+'</select></div></div>'+
+      '<div class="form-group"><label class="form-label">Observacion</label><input class="form-control" id="cajaObs"></div>'+
+      '<div id="cajaAlert"></div>'+
+      '<button class="btn btn-primary" onclick="guardarCaja()">Registrar mi caja</button>'+
+      '</div></div>':'';
+      var filasHoy=cajasHoy.map(function(c){return '<tr><td>'+c.promotor+'</td><td class="text-right text-accent">'+fmt(c.montoEfectivo)+'</td><td class="text-right text-accent">'+fmt(c.montoBanco)+'</td><td>'+c.banco+'</td><td>'+c.obs+'</td></tr>';}).join('');
+      page.innerHTML=miForm+
+      (isAdmin?'<div class="kpi-grid"><div class="kpi-card green"><div class="kpi-label">Efectivo total hoy</div><div class="kpi-value kpi-green">'+fmt(totalEfectivo)+'</div></div><div class="kpi-card"><div class="kpi-label">Banco/Digital hoy</div><div class="kpi-value kpi-accent">'+fmt(totalBanco)+'</div></div><div class="kpi-card"><div class="kpi-label">Total recaudado hoy</div><div class="kpi-value kpi-accent">'+fmt(totalEfectivo+totalBanco)+'</div></div></div>':'')+
+      '<div class="card"><div class="card-header"><span class="card-title">Cajas registradas hoy - '+hoy+'</span></div>'+
+      '<div class="card-body"><div class="table-wrap"><table><thead><tr><th>Promotor</th><th>Efectivo</th><th>Banco/Digital</th><th>Entidad</th><th>Observacion</th></tr></thead>'+
+      '<tbody>'+(filasHoy||'<tr><td colspan="5" style="text-align:center;color:var(--text3);padding:24px">Sin registros de caja hoy</td></tr>')+'</tbody></table></div></div></div>'+
+      '<div class="card"><div class="card-header"><span class="card-title">Historico de cajas (ultimos 30 dias)</span></div>'+
+      '<div class="card-body"><div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Promotor</th><th>Efectivo</th><th>Banco</th><th>Entidad</th></tr></thead>'+
+      '<tbody>'+cajas.slice(-30).reverse().map(function(c){return '<tr><td>'+c.fecha+'</td><td>'+c.promotor+'</td><td class="text-right">'+fmt(c.montoEfectivo)+'</td><td class="text-right">'+fmt(c.montoBanco)+'</td><td>'+c.banco+'</td></tr>';}).join('')+'</tbody></table></div></div></div>';
+    });
+  });
+}
+
+function guardarCaja(){
+  var efectivo=parseFloat(document.getElementById('cajaEfectivo').value)||0;
+  var banco=parseFloat(document.getElementById('cajaBanco').value)||0;
+  var cuenta=document.getElementById('cajaCuenta').value;
+  var obs=document.getElementById('cajaObs').value;
+  apiCall({accion:'registrarCajaDiaria',promotor:currentUser.nombre,usuarioId:currentUser.id,montoEfectivo:efectivo,montoBanco:banco,banco:cuenta,obs:obs},function(r){
+    if(r.ok){setAlert('cajaAlert','success','Caja registrada correctamente');setTimeout(renderCaja,1500);}
+    else setAlert('cajaAlert','danger',r.error||'Error al registrar caja');
+  });
+}
+
+// ── AUDITORIA TRACKER ─────────────────────────────────────
+function auditoria(accion,modulo,detalle){
+  if(!currentUser)return;
+  apiCall({accion:'registrarAuditoria',usuarioId:currentUser.id,usuario:currentUser.usuario,accion:accion,modulo:modulo,detalle:detalle||''},function(){});
 }
 
 document.addEventListener('DOMContentLoaded', function(){
